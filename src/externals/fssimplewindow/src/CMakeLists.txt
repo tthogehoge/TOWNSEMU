@@ -35,9 +35,10 @@ elseif(APPLE)
 		macosx/fsmacosxwrapperobjc.m
 	)
 elseif(UNIX)
+	#set(platform_SRCS glx/fsglxkeymap.cpp glx/fsglxwrapper.cpp)
 	set(platform_SRCS
-		glx/fsglxkeymap.cpp
-		glx/fsglxwrapper.cpp
+		glx/fssdlkeymap.cpp
+		glx/fssdlwrapper.cpp
 	)
 else()
 	set(platform_SRCS "")
