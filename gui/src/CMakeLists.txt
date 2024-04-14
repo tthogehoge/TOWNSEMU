@@ -9,8 +9,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(DISC_IMAGE_DIR "C:/D/TownsISO")
 
+set(USE_SDL ON)
+if(USE_SDL)
+	add_compile_definitions(YS_USE_SDL)
+else()
+endif()
+
 add_compile_definitions(YS_LITTLE_ENDIAN)
+if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+else()
 add_compile_definitions(YS_TWOS_COMPLEMENT)
+endif()
 # Believe or not, C/C++ does not assume 2's complement.
 # C/C++ does not guarantee that 0xFFFF is interpreted as 16-bit signed negative one.
 # In practice, pretty much all CPUs uses 2's complement, and safe to assume it is.
@@ -59,6 +68,7 @@ add_subdirectory(../../src/externals/d77 d77)
 add_subdirectory(../../src/externals/yspng yspng)
 add_subdirectory(../../src/externals/yssocket/src yssocket)
 add_subdirectory(../../src/externals/connect_fssimplewindow connect_fssimplewindow)
+add_subdirectory(../../src/externals/connect_fssimplewindow_sdl connect_fssimplewindow_sdl)
 
 
 add_subdirectory(profile)
