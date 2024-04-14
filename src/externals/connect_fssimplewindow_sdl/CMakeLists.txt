@@ -1,6 +1,6 @@
-set(TARGET_NAME fssimplewindow_connection)
+set(TARGET_NAME fssimplewindow_connection_sdl)
 
-add_library(${TARGET_NAME} fssimplewindow_connection.h fssimplewindow_connection.cpp)
+add_library(${TARGET_NAME} fssimplewindow_connection_sdl.h fssimplewindow_connection_sdl.cpp)
 target_link_libraries(${TARGET_NAME} outside_world fssimplewindow yssimplesound cpputil ysgamepad)
 target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -13,3 +13,4 @@ elseif(APPLE)
 elseif(UNIX)
 	target_link_libraries(${TARGET_NAME} yssimplesound_linux_alsa)
 endif()
+
