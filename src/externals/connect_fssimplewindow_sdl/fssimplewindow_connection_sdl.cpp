@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "fssimplewindow.h"
 #include "fssimplewindow_connection.h"
+extern SDL_Renderer *ysRender;
 
 // G** D*** Windows headers! >>
 #ifdef REG_NONE
@@ -1464,14 +1465,22 @@ void FsSimpleWindowConnection::WindowConnection::Start(void)
 	winThr.winWid=640;
 	winThr.winHei=480;
 
-	glClearColor(0,0,0,0);
-	mainTexId=GenTexture();
-	statusTexId=GenTexture();
+	SDL_SetRenderDrawColor(ysRender,0,0,0,0);
+	SDL_RenderClear(ysRender);
+	//statusTexId=GenTexture();
 
-	pauseIconTexId=GenTexture();
-	UpdateTexture(pauseIconTexId,PAUSE_wid,PAUSE_hei,PAUSEicon.data());
-	menuIconTexId=GenTexture();
-	UpdateTexture(menuIconTexId,MENU_wid,MENU_hei,MENUicon.data());
+	//pauseIconTexId=GenTexture();
+	//UpdateTexture(pauseIconTexId,PAUSE_wid,PAUSE_hei,PAUSEicon.data());
+	//menuIconTexId=GenTexture();
+	//UpdateTexture(menuIconTexId,MENU_wid,MENU_hei,MENUicon.data());
+	auto pause_s = SDL_CreateRGBSurfaceWithFormatFrom(PAUSEicon.data()
+		, PAUSE_wid, PAUSE_hei, 32, 4*PAUSE_wid, SDL_PIXELFORMAT_RGBA32);
+	pauseIconTexId = SDL_CreateTextureFromSurface( ysRender, pause_s );
+	SDL_FreeSurface(pause_s);
+	auto menu_s = SDL_CreateRGBSurfaceWithFormatFrom(MENUicon.data()
+		, MENU_wid, MENU_hei, 32, 4*MENU_wid, SDL_PIXELFORMAT_RGBA32);
+	menuIconTexId = SDL_CreateTextureFromSurface( ysRender, menu_s );
+	SDL_FreeSurface(menu_s);
 
 	// Make initial status bitmap
 	Put16x16Invert(0,15,CD_IDLE);
@@ -1507,10 +1516,8 @@ void FsSimpleWindowConnection::WindowConnection::Stop(void)
 	{
 		FsUnmaximizeWindow();
 	}
-	glDeleteTextures(1,&mainTexId);
-	glDeleteTextures(1,&statusTexId);
-	glDeleteTextures(1,&pauseIconTexId);
-	glDeleteTextures(1,&menuIconTexId);
+	SDL_DestroyTexture(pauseIconTexId);
+	SDL_DestroyTexture(menuIconTexId);
 }
 /*! Called from the Window Thread.
 */
@@ -1606,8 +1613,16 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 
 	UpdateStatusBitmap();
 
-	UpdateTexture(statusTexId,STATUS_WID,STATUS_HEI,winThr.statusBitmap);
-	UpdateTexture(mainTexId,winThr.mostRecentImage.wid,winThr.mostRecentImage.hei,winThr.mostRecentImage.rgba.data());
+	// UpdateTexture(statusTexId,STATUS_WID,STATUS_HEI,winThr.statusBitmap);
+	// UpdateTexture(mainTexId,winThr.mostRecentImage.wid,winThr.mostRecentImage.hei,winThr.mostRecentImage.rgba.data());
+	auto status_s = SDL_CreateRGBSurfaceWithFormatFrom(winThr.statusBitmap
+		, STATUS_WID, STATUS_HEI, 32, 4*STATUS_WID, SDL_PIXELFORMAT_RGBA32);
+	statusTexId = SDL_CreateTextureFromSurface( ysRender, status_s );
+	SDL_FreeSurface(status_s);
+	auto main_s = SDL_CreateRGBSurfaceWithFormatFrom( winThr.mostRecentImage.rgba.data()
+		,imgWid,imgHei,32,4*imgWid,SDL_PIXELFORMAT_RGBA32);
+	mainTexId = SDL_CreateTextureFromSurface( ysRender, main_s );
+	SDL_FreeSurface(main_s);
 
 	auto lowerRightIcon=shared.lowerRightIcon;
 
@@ -1639,41 +1654,67 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 		}
 	}
 
-	glClear(GL_COLOR_BUFFER_BIT);
-	glViewport(0,0,winWid,winHei);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0f,float(winWid),float(winHei),0.0f,-1,1);
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//glViewport(0,0,winWid,winHei);
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	//glOrtho(0.0f,float(winWid),float(winHei),0.0f,-1,1);
 
+	// Initialize renderer color white for the background
+	SDL_SetRenderDrawColor(ysRender,0,0,0,0);
+	// Clear screen
+	SDL_RenderClear(ysRender);
 
+	/*
 	glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 	glColor3f(1,1,1);
 
 	glBindTexture(GL_TEXTURE_2D,statusTexId);
 	DrawTextureRect(0,winHei-1-STATUS_HEI,STATUS_WID,winHei-1);
+	*/
+	{
+		SDL_Rect rect={0,winHei-1-STATUS_HEI,STATUS_WID,winHei-1};
+		SDL_RenderCopy( ysRender, statusTexId, nullptr, &rect );
+		SDL_DestroyTexture( statusTexId );
+	}
 
 	switch(lowerRightIcon)
 	{
 	case LOWER_RIGHT_NONE:
 		break;
 	case LOWER_RIGHT_PAUSE:
-		glBindTexture(GL_TEXTURE_2D,pauseIconTexId);
-		DrawTextureRect(winWid-PAUSE_wid,winHei-1-PAUSE_hei,winWid,winHei-1);
+		{
+			//glBindTexture(GL_TEXTURE_2D,pauseIconTexId);
+			//DrawTextureRect(winWid-PAUSE_wid,winHei-1-PAUSE_hei,winWid,winHei-1);
+			SDL_Rect rect={winWid-PAUSE_wid,winHei-1-PAUSE_hei,winWid,winHei-1};
+			SDL_RenderCopy( ysRender, pauseIconTexId, nullptr, &rect );
+		}
 		break;
 	case LOWER_RIGHT_MENU:
-		glBindTexture(GL_TEXTURE_2D,menuIconTexId);
-		DrawTextureRect(winWid-MENU_wid,winHei-1-MENU_hei,winWid,winHei-1);
+		{
+			//glBindTexture(GL_TEXTURE_2D,menuIconTexId);
+			//DrawTextureRect(winWid-MENU_wid,winHei-1-MENU_hei,winWid,winHei-1);
+			SDL_Rect rect={winWid-MENU_wid,winHei-1-MENU_hei,winWid,winHei-1};
+			SDL_RenderCopy( ysRender, menuIconTexId, nullptr, &rect );
+		}
 		break;
 	}
 
-	glBindTexture(GL_TEXTURE_2D,mainTexId);
-	DrawTextureRect(dx,dy+imgHei*scaling/100,dx+imgWid*scaling/100,dy);
+	//glBindTexture(GL_TEXTURE_2D,mainTexId);
+	//DrawTextureRect(dx,dy+imgHei*scaling/100,dx+imgWid*scaling/100,dy);
+	{
+		//SDL_Rect rect={dx,dy+imgHei*scaling/100,dx+imgWid*scaling/100,dy};
+		SDL_Rect rect={dx,dy,dx+imgWid*scaling/100,dy+imgHei*scaling/100};
+		SDL_RenderCopy( ysRender, mainTexId, nullptr, &rect );
+		SDL_DestroyTexture( mainTexId );
+	}
 
-	glDisable(GL_TEXTURE_2D);
+	//glDisable(GL_TEXTURE_2D);
 
 	if(true==strikeCommanderSpecial)
 	{
+/*
 		int x;
 		glColor3ub(128,128,255);
 		glBegin(GL_LINES);
@@ -1691,11 +1732,13 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 		glVertex2i(x,winHei-STATUS_HEI+1);
 
 		glEnd();
+*/
 	}
 
 	if(true==swapBuffers)
 	{
-		FsSwapBuffers();
+		// FsSwapBuffers();
+		SDL_RenderPresent(ysRender);
 	}
 }
 
@@ -1786,54 +1829,6 @@ void FsSimpleWindowConnection::WindowConnection::UpdateStatusBitmap(void)
 		}
 	}
 	winThrEx.prevStatusBarInfo=sharedEx.statusBarInfo;
-}
-
-GLuint FsSimpleWindowConnection::WindowConnection::GenTexture(void)
-{
-	GLuint texId;
-
-	glGenTextures(1,&texId);  // Reserve one texture identifier
-	glBindTexture(GL_TEXTURE_2D,texId);  // Making the texture identifier current (or bring it to the deck)
-
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-
-	return texId;
-}
-
-void FsSimpleWindowConnection::WindowConnection::UpdateTexture(GLuint texId,int wid,int hei,const unsigned char *rgba) const
-{
-	glBindTexture(GL_TEXTURE_2D,texId);
-	glTexImage2D
-	    (GL_TEXTURE_2D,
-	     0,
-	     GL_RGBA,
-	     wid,
-	     hei,
-	     0,
-	     GL_RGBA,
-	     GL_UNSIGNED_BYTE,
-	     rgba);
-}
-void FsSimpleWindowConnection::WindowConnection::DrawTextureRect(int x0,int y0,int x1,int y1) const
-{
-	glBegin(GL_QUADS);
-
-	glTexCoord2f(0,0);
-	glVertex2i(x0,y1);
-
-	glTexCoord2f(1,0);
-	glVertex2i(x1,y1);
-
-	glTexCoord2f(1,1);
-	glVertex2i(x1,y0);
-
-	glTexCoord2f(0,1);
-	glVertex2i(x0,y0);
-
-	glEnd();
 }
 
 ////////////////////////////////////////////////////////////////

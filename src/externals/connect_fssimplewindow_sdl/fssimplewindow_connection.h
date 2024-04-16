@@ -41,6 +41,7 @@ So, my best decision is to use streaming mode in macOS, which should work perfec
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <SDL2/SDL.h>
 
 class FsSimpleWindowConnection : public Outside_World
 {
@@ -162,11 +163,7 @@ public:
 		VMThreadVariables VMThrEx;
 
 		// Constants that do not change.
-		GLuint mainTexId,statusTexId,pauseIconTexId,menuIconTexId;
-
-		GLuint GenTexture(void);
-		void UpdateTexture(GLuint texId,int wid,int hei,const unsigned char *rgba) const;
-		void DrawTextureRect(int x0,int y0,int x1,int y1) const;
+		SDL_Texture *mainTexId,*statusTexId,*pauseIconTexId,*menuIconTexId;
 
 		void UpdateStatusBitmap(void);
 
