@@ -73,5 +73,8 @@ add_subdirectory(../../src/externals/connect_fssimplewindow_sdl connect_fssimple
 
 add_subdirectory(profile)
 add_subdirectory(subprocess)
+if(NOT USE_SDL)
 add_subdirectory(main_gui)
+else()
+endif()
 add_subdirectory(tests_gui)

@@ -665,14 +665,19 @@ FsSimpleWindowConnection::~FsSimpleWindowConnection()
 						auto &reading=gamePads[padId];
 						towns.SetGamePadState(
 						    portId,
-						    reading.buttons[0],
 						    reading.buttons[1],
-						    reading.dirs[0].upDownLeftRight[2],
-						    reading.dirs[0].upDownLeftRight[3],
-						    reading.dirs[0].upDownLeftRight[0],
-						    reading.dirs[0].upDownLeftRight[1],
-						    reading.buttons[2],
-						    reading.buttons[3]);
+						    reading.buttons[0],
+						    reading.buttons[15],
+						    reading.buttons[16],
+						    reading.buttons[13],
+						    reading.buttons[14],
+						    reading.buttons[8],
+						    reading.buttons[9]);
+
+						// force exit button
+						if(reading.buttons[10]&&reading.buttons[9]){
+							exit(0);
+						}
 					}
 				}
 				break;
@@ -801,8 +806,8 @@ FsSimpleWindowConnection::~FsSimpleWindowConnection()
 								upDownLeftRight[1]=(0!=reading.dirs[0].upDownLeftRight[1]);
 								upDownLeftRight[2]=(0!=reading.dirs[0].upDownLeftRight[2]);
 								upDownLeftRight[3]=(0!=reading.dirs[0].upDownLeftRight[3]);
-								button[0]=(0!=reading.buttons[0]);
-								button[1]=(0!=reading.buttons[1]);
+								button[0]=(0!=reading.buttons[7]);
+								button[1]=(0!=reading.buttons[6]);
 							}
 						}
 						if(true==upDownLeftRight[0])
@@ -860,7 +865,7 @@ FsSimpleWindowConnection::~FsSimpleWindowConnection()
 			case TOWNS_GAMEPORTEMU_MOUSE_BY_ANALOG7:
 				{
 					{
-						const double maxSpeed=20.0;
+						const double maxSpeed=5.0;
 
 						mouseEmulationByAnalogAxis=true;
 						int padId=gamePort[portId]-TOWNS_GAMEPORTEMU_MOUSE_BY_ANALOG0;
@@ -870,7 +875,7 @@ FsSimpleWindowConnection::~FsSimpleWindowConnection()
 							float dx=reading.axes[0]*maxSpeed;
 							float dy=reading.axes[1]*maxSpeed;
 							towns.SetMouseMotion(portId,-dx,-dy);
-							towns.SetMouseButtonState(0!=reading.buttons[0],0!=reading.buttons[1]);
+							towns.SetMouseButtonState(0!=reading.buttons[7],0!=reading.buttons[6]);
 						}
 					}
 				}

@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define YSGAMEPAD_MAX_NUM_BUTTONS 16
+#define YSGAMEPAD_MAX_NUM_BUTTONS 17
 #define YSGAMEPAD_MAX_NUM_DIRS 8
 #define YSGAMEPAD_MAX_NUM_AXES 8
 

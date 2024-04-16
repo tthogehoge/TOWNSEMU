@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include "../ysgamepad.h"
 
-
+#define USE_SDL
 
 #define MAX_NUM_GAMEPADS 8
 
@@ -33,6 +33,15 @@ struct GamepadCache
 };
 
 static struct GamepadCache cache[MAX_NUM_GAMEPADS];
+//   6 L2         R2 7
+//   4 L1         R1 5
+// SELECT 8      9 START
+//        
+//     13          2
+//   15  16      3   1
+//     14          0
+//         10 F
+//  L3 11          12 R3
 
 static void Update(struct GamepadCache *cachePtr)
 {
