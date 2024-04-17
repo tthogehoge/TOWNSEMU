@@ -1473,6 +1473,10 @@ void FsSimpleWindowConnection::WindowConnection::Start(void)
 	SDL_SetRenderDrawColor(ysRender,0,0,0,0);
 	SDL_RenderClear(ysRender);
 	//statusTexId=GenTexture();
+	statusTexId = SDL_CreateTexture(ysRender, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, STATUS_WID, STATUS_HEI);
+	if(statusTexId==NULL){
+		printf("status tex: %s", SDL_GetError());
+	}
 
 	//pauseIconTexId=GenTexture();
 	//UpdateTexture(pauseIconTexId,PAUSE_wid,PAUSE_hei,PAUSEicon.data());
@@ -1523,6 +1527,8 @@ void FsSimpleWindowConnection::WindowConnection::Stop(void)
 	}
 	SDL_DestroyTexture(pauseIconTexId);
 	SDL_DestroyTexture(menuIconTexId);
+	SDL_DestroyTexture(statusTexId);
+	SDL_DestroyTexture( mainTexId );
 }
 /*! Called from the Window Thread.
 */
@@ -1620,14 +1626,25 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 
 	// UpdateTexture(statusTexId,STATUS_WID,STATUS_HEI,winThr.statusBitmap);
 	// UpdateTexture(mainTexId,winThr.mostRecentImage.wid,winThr.mostRecentImage.hei,winThr.mostRecentImage.rgba.data());
+	/*
 	auto status_s = SDL_CreateRGBSurfaceWithFormatFrom(winThr.statusBitmap
 		, STATUS_WID, STATUS_HEI, 32, 4*STATUS_WID, SDL_PIXELFORMAT_RGBA32);
 	statusTexId = SDL_CreateTextureFromSurface( ysRender, status_s );
 	SDL_FreeSurface(status_s);
+	*/
+	void *dst=NULL;
+	int pitch=0;
+	int ret = SDL_LockTexture(statusTexId, NULL, &dst, &pitch);
+	if(ret==0){
+		memcpy(dst, winThr.statusBitmap, 4*STATUS_WID*STATUS_HEI);
+		SDL_UnlockTexture( statusTexId );
+	}
+	/*
 	auto main_s = SDL_CreateRGBSurfaceWithFormatFrom( winThr.mostRecentImage.rgba.data()
 		,imgWid,imgHei,32,4*imgWid,SDL_PIXELFORMAT_RGBA32);
 	mainTexId = SDL_CreateTextureFromSurface( ysRender, main_s );
 	SDL_FreeSurface(main_s);
+	*/
 
 	auto lowerRightIcon=shared.lowerRightIcon;
 
@@ -1681,7 +1698,9 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 	{
 		SDL_Rect rect={0,winHei-1-STATUS_HEI,STATUS_WID,winHei-1};
 		SDL_RenderCopy( ysRender, statusTexId, nullptr, &rect );
+		/*
 		SDL_DestroyTexture( statusTexId );
+		*/
 	}
 
 	switch(lowerRightIcon)
@@ -1706,13 +1725,42 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 		break;
 	}
 
+	{
+	auto &img = winThr.mostRecentImage;
+	if(mainTexId){
+		int resize=1;
+		int w, h;
+		if(SDL_QueryTexture(mainTexId, NULL, NULL, &w, &h)==0){
+			if(w==img.wid && h==img.hei){
+				resize = 0;
+			}
+		}
+		if(resize){
+			SDL_DestroyTexture(mainTexId);
+			mainTexId = NULL;
+		}
+	}
+	if(mainTexId==NULL){
+		mainTexId = SDL_CreateTexture(ysRender, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, img.wid, img.hei);
+	}
+	// std::swap(winThr.mostRecentImage,img);
+	void *dst=NULL;
+	int pitch=0;
+	int ret = SDL_LockTexture(mainTexId, NULL, &dst, &pitch);
+	if(ret==0){
+		memcpy(dst, img.rgba.data(), 4*img.wid*img.hei);
+		SDL_UnlockTexture( mainTexId );
+	}
 	//glBindTexture(GL_TEXTURE_2D,mainTexId);
 	//DrawTextureRect(dx,dy+imgHei*scaling/100,dx+imgWid*scaling/100,dy);
 	{
 		//SDL_Rect rect={dx,dy+imgHei*scaling/100,dx+imgWid*scaling/100,dy};
 		SDL_Rect rect={dx,dy,dx+imgWid*scaling/100,dy+imgHei*scaling/100};
 		SDL_RenderCopy( ysRender, mainTexId, nullptr, &rect );
+		/*
 		SDL_DestroyTexture( mainTexId );
+		*/
+	}
 	}
 
 	//glDisable(GL_TEXTURE_2D);
