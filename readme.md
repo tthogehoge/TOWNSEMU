@@ -46,16 +46,16 @@ sudo apt install libsdl2-dev
 mkdir build
 cd build
 cmake ../src
-cmake --build . --config Release --parallel
+cmake --build . --config Release
 # arm64 build
 sudo apt install libsdl2-dev:arm64
 mkdir ../buildarm64
 cd ../buildarm64
 cmake -DCMAKE_TOOLCHAIN_FILE=../../arm64.cmake ../src
-cmake --build . --config Release --parallel
+cmake --build . --config Release
 # 途中でエラーになる(arm用バイナリができるため)
 cp ../build/exe/* ./exe/
-cmake --build . --config Release --parallel
+cmake --build . --config Release
 ```
 
 ## 端末向けパッケージ
@@ -68,6 +68,7 @@ cd ../../
 # TOWNSEMU dir
 mkdir -p package/usr/bin
 cp gui/guildarm64/main_cui/Tsugaru_CUI package/usr/bin/
+aarch64-linux-gnu-strip package/usr/bin/Tsugaru_CUI
 cd package
 tar cf fmtowns.tar .
 ```
