@@ -67,10 +67,10 @@ cmake --build . --config Release
 cd ../../
 # TOWNSEMU dir
 mkdir -p package/usr/bin
-cp gui/guildarm64/main_cui/Tsugaru_CUI package/usr/bin/
+cp gui/buildarm64/main_cui/Tsugaru_CUI package/usr/bin/
 aarch64-linux-gnu-strip package/usr/bin/Tsugaru_CUI
 cd package
-tar cf fmtowns.tar .
+tar cf fmtowns.tar usr
 ```
 
 package/custom.shとpackage/fmtowns.tarを/userdata(share)の/systemに置いておくと、
