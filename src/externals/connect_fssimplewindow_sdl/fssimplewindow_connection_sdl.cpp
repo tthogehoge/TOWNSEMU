@@ -671,8 +671,8 @@ FsSimpleWindowConnection::~FsSimpleWindowConnection()
 						    reading.buttons[16],
 						    reading.buttons[13],
 						    reading.buttons[14],
-						    reading.buttons[8],
-						    reading.buttons[9]);
+						    reading.buttons[9],
+						    reading.buttons[8]);
 
 						// force exit button
 						if(reading.buttons[10]&&reading.buttons[9]){
