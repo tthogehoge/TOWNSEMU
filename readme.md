@@ -1,3 +1,136 @@
+# FM TOWNS / Marty エミュレータ 「津軽」 for handheld linux console
+
+CaptainYS氏作 FM TOWNS / Marty エミュレータ 「津軽」を携帯linuxゲーム機で動かそうとしたものです。
+ANBERNIC RG353PSのみ動作確認。免責事項等はLICENSE参照。
+
+## やったこと
+
+- OpenGLがなぜか端末上で動かなかったため、SDL2に置き換えた
+  - このためmain_cui以外は動かないのでビルドから除外
+  - キーボードはXorgからSDLに変更時に適当に設定したのでおそらくまともに動かない
+- O3コンパイル
+- ボタン設定をRG353PS向けに変更
+  - 左アナログスティック: マウス移動, L2:右クリック, R2:左クリック
+  - 十字キー/SELECT/STARTはそのまま
+  - F+STARTで強制exit
+
+## 準備
+
+ビルド環境 Debian 10(buster) (新しすぎるとlibcが異なり端末上で動かない)
+
+```:/etc/apt/sources.list
+deb http://deb.debian.org/debian buster-backports main
+```
+
+```
+sudo apt install crossbuild-essential-arm64 
+sudo apt install git
+sudo apt install cmake/buster-backports
+sudo apt install libgl1-mesa-dev 
+sudo apt install libgl1-mesa-dev:arm64
+sudo apt install libglu1-mesa-dev 
+sudo apt install libglu1-mesa-dev:arm64
+sudo apt install libsdl2-dev
+sudo apt install libsdl2-dev:arm64
+```
+
+## ビルド
+
+```
+git clone https://github.com/tthogehoge/TOWNSEMU.git
+cd TOWNSEMU/gui/src
+git clone https://github.com/tthogehoge/TOWNSEMU_public.git ./public
+cd ..
+# host build
+sudo apt install libsdl2-dev
+mkdir build
+cd build
+cmake ../src
+cmake --build . --config Release --parallel
+# arm64 build
+sudo apt install libsdl2-dev:arm64
+mkdir ../buildarm64
+cd ../buildarm64
+cmake -DCMAKE_TOOLCHAIN_FILE=../../arm64.cmake ../src
+cmake --build . --config Release --parallel
+# 途中でエラーになる(arm用バイナリができるため)
+cp ../build/exe/* ./exe/
+cmake --build . --config Release --parallel
+```
+
+## 端末向けパッケージ
+
+以下で置き換え用ファイルを作成する。
+もともとTsugaru_CUIを実行させる仕組みまでは用意されているようであった。
+
+```
+cd ../../
+# TOWNSEMU dir
+mkdir -p package/usr/bin
+cp gui/guildarm64/main_cui/Tsugaru_CUI package/usr/bin/
+cd package
+tar cf fmtowns.tar .
+```
+
+package/custom.shとpackage/fmtowns.tarを/userdata(share)の/systemに置いておくと、
+custom.shが起動時に実行され、fmtowns.tarが展開される。
+custom.shは他にp2p0を無効にしている。(スリープ解除時にwifiがつながらなくなるため)
+
+以下のどこかを編集し、fmtownsの項目を追加する。
+
+```
+/etc/emulationstation/es_systems.cfg
+/media/SHARE/system/configs/emulationstation/es_systems.cfg
+/media/SHARE/system/custom/es_systems.cfg
+/overlay/base/etc/emulationstation/es_systems.cfg
+/overlay/base/usr/share/emulationstation/es_systems.cfg
+/userdata/system/configs/emulationstation/es_systems.cfg
+/userdata/system/custom/es_systems.cfg
+/usr/share/emulationstation/es_systems.cfg
+```
+
+FM-TOWNS用定義はとりあえず以下とした。roms/fmtowns/*.twフォルダを探すように設定している。
+
+```
+  <system>
+        <fullname>FM-TOWNS</fullname>
+        <name>fmtowns</name>
+        <manufacturer>Fujitsu</manufacturer>
+        <release>None</release>
+        <hardware>computer</hardware>
+        <path>/userdata/roms/fmtowns</path>
+        <extension>.tw</extension>
+        <command>python /usr/lib/python3.9/site-packages/configgen/emulatorlauncher.py %CONTROLLERSCONFIG% -system %SYSTEM% -rom %ROM%</command>
+        <platform>fmtowns</platform>
+        <theme>fmtowns</theme>
+        <emulators>
+            <emulator name="tsugaru">
+                <cores>
+                    <core default="true">tsugaru</core>
+                </cores>
+            </emulator>
+        </emulators>
+  </system>
+```
+
+## ROM
+
+詳細は`package/usr/lib/python3.9/site-packages/configgen/generators/tsugaru/tsugaruGenerator.py`参照。
+とりあえず以下のような条件で起動するように記述している。
+
+- bios/fmtownsにROMを入れておく
+- roms/fmtowns/*.twフォルダにROMやディスクイメージを置く
+- twフォルダ内
+  - cue/isoがあれば-CDとして追加
+  - *.h0があれば-HD0として追加、twフォルダになくてもfmtownsフォルダ内にあれば-HD0として追加
+  - *.h1があれば-HD1として追加、twフォルダになくてもfmtownsフォルダ内にあれば-HD1として追加
+  - cdboot.txt(空ファイル)があれば-BOOTKEY CD
+  - *.f0があれば-FD0として追加
+  - *.f1があれば-FD1として追加
+- UPDATE GAMES LISTS
+
+以上。以下はオリジナルのreadme.md。
+
 # FM TOWNS / Marty Emulator "Tsugaru"
 # FM TOWNS / Marty エミュレータ 「津軽」
 by CaptainYS
