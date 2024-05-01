@@ -663,21 +663,39 @@ FsSimpleWindowConnection::~FsSimpleWindowConnection()
 					if(0<=padId && padId<gamePads.size())
 					{
 						auto &reading=gamePads[padId];
-						towns.SetGamePadState(
-						    portId,
-						    reading.buttons[1],
-						    reading.buttons[0],
-						    reading.buttons[15],
-						    reading.buttons[16],
-						    reading.buttons[13],
-						    reading.buttons[14],
-						    reading.buttons[9],
-						    reading.buttons[8]);
-
-						// force exit button
-						if(reading.buttons[10]&&reading.buttons[9]){
-							exit(0);
+						static auto old=reading;
+						if(!reading.buttons[10]){ // F button
+							towns.SetGamePadState(
+							    portId,
+							    reading.buttons[1],
+							    reading.buttons[0],
+							    reading.buttons[15],
+							    reading.buttons[16],
+							    reading.buttons[13],
+							    reading.buttons[14],
+							    reading.buttons[9],
+							    reading.buttons[8]);
+						}else{
+							// force exit button
+							if(reading.buttons[9]){ //start
+								exit(0);
+							}
+							if(!old.buttons[5]&&reading.buttons[5]){ //R1
+								std::cout << "Save: " << towns.var.quickStateSaveFName << std::endl;
+								if(true!=towns.SaveState(towns.var.quickStateSaveFName))
+								{
+									std::cout << "Error" << std::endl;
+								}
+							}
+							if(!old.buttons[7]&&reading.buttons[7]){ //R2
+								std::cout << "Load: " << towns.var.quickStateSaveFName << std::endl;
+								if(true!=towns.LoadState(towns.var.quickStateSaveFName))
+								{
+									std::cout << "Error" << std::endl;
+								}
+							}
 						}
+						old = reading;
 					}
 				}
 				break;
