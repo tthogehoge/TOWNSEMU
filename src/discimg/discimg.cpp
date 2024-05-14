@@ -1226,7 +1226,12 @@ std::vector <unsigned char> DiscImage::GetWave(MinSecFrm startMSF,MinSecFrm endM
 				#endif
 
 					auto curSize=wave.size();
-					wave.resize(wave.size()+readSize);
+					try{
+						wave.resize(wave.size()+readSize);
+					}catch(std::bad_alloc& e) {
+						wave.clear();
+						return wave;
+					}
 					for(auto i=curSize; i<wave.size(); ++i)
 					{
 						wave[i]=0;
@@ -1254,7 +1259,12 @@ std::vector <unsigned char> DiscImage::GetWave(MinSecFrm startMSF,MinSecFrm endM
 					readSize&=(~3);
 
 					auto curPos=wave.size();
-					wave.resize(wave.size()+readSize);
+					try{
+						wave.resize(wave.size()+readSize);
+					}catch(std::bad_alloc& e) {
+						wave.clear();
+						return wave;
+					}
 					for(auto i=curPos; i<wave.size(); ++i)
 					{
 						wave[i]=0;

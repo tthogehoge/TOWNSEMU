@@ -162,6 +162,9 @@ public:
 				--this->min;
 			}
 			this->min-=incoming.min;
+			if(this->min<0){
+				this->min=0;
+			}
 		}
 		inline MinSecFrm &operator-=(const MinSecFrm incoming)
 		{
