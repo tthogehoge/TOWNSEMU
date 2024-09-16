@@ -1221,10 +1221,10 @@ FsSimpleWindowConnection::~FsSimpleWindowConnection()
 				{
 					my=hei-1;
 				}
-				if(0!=scaling) // Just in case
+				if(0!=scalingX && 0!=scalingY) // Just in case
 				{
-					mx=mx*100/scaling;
-					my=my*100/scaling;
+					mx=mx*100/scalingX;
+					my=my*100/scalingY;
 				}
 				this->ProcessMouse(towns,lb,mb,rb,mx,my);
 			}
@@ -1414,8 +1414,8 @@ void FsSimpleWindowConnection::PauseKeyPressed(void)
 
 void FsSimpleWindowConnection::WindowConnection::Start(void)
 {
-	int wid=640*shared.scaling/100;
-	int hei=480*shared.scaling/100;
+	int wid=640*shared.scalingX/100;
+	int hei=480*shared.scalingY/100;
 
 	int winY0=0;
 	if(true==windowShift)
@@ -1631,12 +1631,13 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 		{
 			unsigned int scaleX=100*winWid/imgWid;
 			unsigned int scaleY=100*(winHei-STATUS_HEI)/imgHei;
-			shared.scaling=std::min(scaleX,scaleY);
+			shared.scalingX=scaleX;
+			shared.scalingY=scaleY;
 		}
 	}
 
-	unsigned int renderWid=imgWid*shared.scaling/100;
-	unsigned int renderHei=imgHei*shared.scaling/100;
+	unsigned int renderWid=imgWid*shared.scalingX/100;
+	unsigned int renderHei=imgHei*shared.scalingY/100;
 	shared.dx=(renderWid<winWid ? (winWid-renderWid)/2 : 0);
 	shared.dy=(renderHei<(winHei-STATUS_HEI) ? (winHei-STATUS_HEI-renderHei)/2 : 0);
 
@@ -1668,7 +1669,8 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 
 	auto dx=shared.dx;
 	auto dy=shared.dy;
-	auto scaling=shared.scaling;
+	auto scalingX=shared.scalingX;
+	auto scalingY=shared.scalingY;
 
 	auto strikeCommanderSpecial=sharedEx.statusBarInfo.strikeCommanderSpecial;
 
@@ -1689,7 +1691,7 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 			--winThrEx.sinceLastResize;
 			if(0==winThrEx.sinceLastResize)
 			{
-				FsResizeWindow(winThr.winWid*scaling/100,winThr.winHei*scaling/100+STATUS_HEI);
+				FsResizeWindow(winThr.winWid*scalingX/100,winThr.winHei*scalingY/100+STATUS_HEI);
 			}
 		}
 	}
@@ -1770,10 +1772,10 @@ void FsSimpleWindowConnection::WindowConnection::Render(bool swapBuffers)
 		SDL_UnlockTexture( mainTexId );
 	}
 	//glBindTexture(GL_TEXTURE_2D,mainTexId);
-	//DrawTextureRect(dx,dy+imgHei*scaling/100,dx+imgWid*scaling/100,dy);
+	//DrawTextureRect(dx,dy+imgHei*scalingX/100,dx+imgWid*scalingY/100,dy);
 	{
-		//SDL_Rect rect={dx,dy+imgHei*scaling/100,dx+imgWid*scaling/100,dy};
-		SDL_Rect rect={dx,dy,dx+imgWid*scaling/100,dy+imgHei*scaling/100};
+		//SDL_Rect rect={dx,dy+imgHei*scalingX/100,dx+imgWid*scalingY/100,dy};
+		SDL_Rect rect={dx,dy,dx+imgWid*scalingX/100,dy+imgHei*scalingY/100};
 		SDL_RenderCopy( ysRender, mainTexId, nullptr, &rect );
 		/*
 		SDL_DestroyTexture( mainTexId );
@@ -1848,7 +1850,8 @@ void FsSimpleWindowConnection::WindowConnection::Communicate(Outside_World *ow)
 		sharedEx.statusBarInfo=outside_world->statusBarInfo;
 		shared.lowerRightIcon=outside_world->lowerRightIcon;
 
-		outside_world->scaling=shared.scaling;
+		outside_world->scalingX=shared.scalingX;
+		outside_world->scalingY=shared.scalingY;
 		outside_world->dx=shared.dx;
 		outside_world->dy=shared.dy;
 	}
